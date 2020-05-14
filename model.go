@@ -7,3 +7,15 @@ type BaseState struct {
 	Second bool
 	Third  bool
 }
+
+// Score represents the current score of a game
+type Score struct {
+	Away int
+	Home int
+}
+
+// HalfInning represents the current half inning of a game
+type HalfInning struct {
+	Inning      int
+	TopOfInning bool
+}
