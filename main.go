@@ -6,7 +6,7 @@ import "fmt"
 // These values are most likely older than 2008 and could use updating
 //
 // This a 24 x 154 matrix
-// 24:  possible baseState + outs
+// 24:  BaseState.Int() * (outs+1)
 //      [{outs: 0, baseState{first: false, second: false, third: false}},
 //       {outs: 0, baseState{first: true, second: false, third: false}},
 //       {outs: 0, baseState{first: false, second: true, third: false}},
@@ -82,23 +82,43 @@ var leverageIndices = [24][154]float64{
 // bs :         BaseState{First: bool, Second: bool, Third: bool} representating which bases are occupied
 // score :      Score{Away: int, Home: int}
 // halfInning:  HalfInning{Inning: int, TopOfInning: bool} If inning > 9, then the leverage index of 9 is returned
-// outs :       `int` representation of number of outs in the game currently (0,1,2)
+// outs :       `int` representation of number of outs in the game currently (0,1,2,3).
+//                3 acts as 0 outs for the next half inning.
 //
 // Returns:   `float64` representing the current game's leverage index
 //            `error` occurs on invalid data
 func LeverageIndex(baseState BaseState, score Score, halfInning HalfInning, outs int) (float64, error) {
-	// validate and clean
+	// validate
 	if halfInning.Inning < 1 {
 		return 0.0, fmt.Errorf("inning should be a positive integer")
 	}
-	if (outs < 0) || (outs > 2) {
-		return 0.0, fmt.Errorf("outs should be a value of 0, 1 or 2")
+	if (outs < 0) || (outs > 3) {
+		return 0.0, fmt.Errorf("outs should be a value of 0, 1, 2 or 3")
+	}
+
+	// clean
+	if outs == 3 {
+		outs = 0
+		if halfInning.TopOfInning {
+			halfInning.TopOfInning = false
+		} else {
+			halfInning.Inning++
+			halfInning.TopOfInning = true
+		}
 	}
 	if halfInning.Inning > 9 {
 		halfInning.Inning = 9
 	}
+	runDiff := score.Home - score.Away
+	if runDiff > 4 {
+		runDiff = 4
+	}
+	if runDiff < -4 {
+		runDiff = -4
+	}
 
 	// convert to simple lookup table
-
+	// baseStateIndex := baseState.Int() * (outs + 1)
+	// TODO get gameStateIndex. Should gameState be a struct? And should it include the BaseState?
 	return 0.0, nil
 }
