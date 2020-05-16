@@ -32,3 +32,17 @@ func (bs BaseState) Int() int {
 	}
 	return 0
 }
+
+// Int converts a HalfInning to an integer value
+//   0 : Top of the 1st
+//   1 : Bottom of the 1st
+//   2 : Top of the 2nd
+//   ...
+//   17 : Bottom of the 9th
+//   ...
+func (h HalfInning) Int() int {
+	if h.TopOfInning {
+		return 2*h.Inning - 2
+	}
+	return 2*h.Inning - 1
+}

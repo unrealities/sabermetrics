@@ -118,7 +118,14 @@ func LeverageIndex(baseState BaseState, score Score, halfInning HalfInning, outs
 	}
 
 	// convert to simple lookup table
-	// baseStateIndex := baseState.Int() * (outs + 1)
-	// TODO get gameStateIndex. Should gameState be a struct? And should it include the BaseState?
-	return 0.0, nil
+	baseStateIndex := baseState.Int() * (outs + 1)
+	gameStateIndex := 0
+	if halfInning.Int() == 0 {
+		gameStateIndex = runDiff + 4
+	}
+	if halfInning.Int() == 17 {
+		gameStateIndex = runDiff + 153
+	}
+	gameStateIndex = 5 + halfInning.Int()*(runDiff+5)
+	return leverageIndices[baseStateIndex][gameStateIndex], nil
 }
