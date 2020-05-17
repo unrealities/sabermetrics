@@ -1,6 +1,15 @@
 package sabermetrics
 
-import "fmt"
+import (
+	"fmt"
+	"log"
+)
+
+// ErrInvalidInning is returned if a non-positive HalfInning.Inning is received
+var ErrInvalidInning = fmt.Errorf("inning should be a positive integer")
+
+// ErrInvalidOuts is returned if outs is invalid
+var ErrInvalidOuts = fmt.Errorf("outs should be a value of 0, 1, 2 or 3")
 
 // leverageIndices is pulled from `The Book`: http://www.insidethebook.com/li.shtml
 // These values are most likely older than 2008 and could use updating
@@ -48,7 +57,7 @@ import "fmt"
 //        {{Inning: 9, TopOfInning: false}, runDiff: -2},
 //        {{Inning: 9, TopOfInning: false}, runDiff: -1},
 //        {{Inning: 9, TopOfInning: false}, runDiff: -0}]
-var leverageIndices = [24][154]float64{
+var leverageIndices = [24][154]float32{
 	{0.4, 0.6, 0.7, 0.8, 0.9, 0.7, 0.8, 0.9, 0.9, 0.9, 0.8, 0.6, 0.5, 0.4, 0.4, 0.6, 0.7, 0.8, 0.9, 1.0, 0.9, 0.8, 0.7, 0.8, 0.9, 1.0, 1.0, 0.9, 0.8, 0.6, 0.5, 0.4, 0.4, 0.6, 0.7, 0.9, 1.0, 1.0, 1.0, 0.9, 0.7, 0.8, 0.9, 1.0, 1.1, 1.0, 0.8, 0.6, 0.5, 0.3, 0.4, 0.5, 0.7, 0.9, 1.1, 1.1, 1.1, 0.9, 0.7, 0.8, 1.0, 1.1, 1.2, 1.1, 0.9, 0.6, 0.4, 0.3, 0.4, 0.5, 0.7, 1.0, 1.2, 1.3, 1.1, 0.9, 0.7, 0.8, 1.1, 1.3, 1.3, 1.2, 0.9, 0.6, 0.4, 0.3, 0.3, 0.5, 0.7, 1.0, 1.3, 1.4, 1.3, 1.0, 0.7, 0.8, 1.1, 1.4, 1.6, 1.3, 0.9, 0.6, 0.3, 0.2, 0.2, 0.4, 0.7, 1.0, 1.5, 1.7, 1.4, 1.0, 0.6, 0.8, 1.2, 1.6, 1.9, 1.5, 0.8, 0.4, 0.2, 0.1, 0.2, 0.3, 0.6, 1.0, 1.9, 2.2, 1.5, 0.9, 0.6, 0.7, 1.1, 1.8, 2.5, 1.8, 0.6, 0.3, 0.1, 0.1, 0.1, 0.2, 0.3, 0.7, 2.4, 2.9, 1.6, 0.8, 0.4, 0.5, 1.0, 2.0, 3.6, 2.3},
 	{0.7, 0.9, 1.1, 1.3, 1.4, 1.2, 1.4, 1.5, 1.5, 1.4, 1.2, 1.0, 0.8, 0.6, 0.7, 0.9, 1.1, 1.3, 1.5, 1.5, 1.5, 1.4, 1.2, 1.3, 1.5, 1.6, 1.6, 1.5, 1.2, 1.0, 0.8, 0.6, 0.6, 0.9, 1.1, 1.4, 1.6, 1.7, 1.6, 1.4, 1.2, 1.3, 1.6, 1.7, 1.7, 1.5, 1.3, 1.0, 0.7, 0.5, 0.6, 0.8, 1.1, 1.4, 1.7, 1.8, 1.7, 1.5, 1.2, 1.4, 1.7, 1.9, 1.9, 1.7, 1.3, 1.0, 0.7, 0.5, 0.5, 0.8, 1.1, 1.5, 1.9, 2.0, 1.9, 1.6, 1.2, 1.4, 1.8, 2.1, 2.1, 1.8, 1.3, 0.9, 0.6, 0.4, 0.5, 0.7, 1.1, 1.6, 2.1, 2.3, 2.1, 1.7, 1.2, 1.4, 1.9, 2.3, 2.4, 2.0, 1.3, 0.8, 0.5, 0.3, 0.4, 0.6, 1.0, 1.6, 2.4, 2.7, 2.3, 1.7, 1.2, 1.4, 2.0, 2.6, 3.0, 2.3, 1.2, 0.7, 0.4, 0.2, 0.2, 0.4, 0.8, 1.5, 2.8, 3.4, 2.6, 1.7, 1.0, 1.3, 2.1, 3.1, 3.8, 2.6, 0.9, 0.4, 0.2, 0.1, 0.1, 0.2, 0.5, 1.1, 3.4, 4.6, 2.9, 1.6, 0.8, 1.0, 2.0, 3.6, 5.4, 3.1},
 	{0.6, 0.7, 0.9, 1.0, 1.2, 1.1, 1.2, 1.3, 1.2, 1.1, 1.0, 0.8, 0.6, 0.5, 0.5, 0.7, 0.9, 1.1, 1.2, 1.3, 1.3, 1.2, 1.0, 1.1, 1.3, 1.3, 1.3, 1.2, 1.0, 0.8, 0.6, 0.4, 0.5, 0.7, 0.9, 1.1, 1.3, 1.4, 1.4, 1.2, 1.0, 1.2, 1.3, 1.5, 1.4, 1.3, 1.1, 0.8, 0.6, 0.4, 0.5, 0.7, 0.9, 1.2, 1.4, 1.5, 1.5, 1.3, 1.1, 1.2, 1.4, 1.6, 1.6, 1.4, 1.1, 0.8, 0.5, 0.4, 0.4, 0.6, 0.9, 1.2, 1.5, 1.7, 1.6, 1.4, 1.1, 1.2, 1.6, 1.8, 1.8, 1.5, 1.1, 0.7, 0.5, 0.3, 0.4, 0.6, 0.9, 1.3, 1.7, 1.9, 1.8, 1.5, 1.1, 1.3, 1.7, 2.0, 2.0, 1.6, 1.1, 0.7, 0.4, 0.2, 0.3, 0.5, 0.8, 1.2, 1.9, 2.3, 2.0, 1.5, 1.1, 1.3, 1.8, 2.3, 2.4, 1.8, 0.9, 0.5, 0.3, 0.1, 0.2, 0.4, 0.6, 1.1, 2.2, 2.8, 2.3, 1.6, 1.0, 1.2, 1.9, 2.7, 3.1, 2.0, 0.7, 0.3, 0.1, 0.1, 0.1, 0.2, 0.4, 0.8, 2.6, 3.7, 2.7, 1.5, 0.8, 1.0, 1.9, 3.3, 4.3, 2.5},
@@ -87,13 +96,13 @@ var leverageIndices = [24][154]float64{
 //
 // Returns:   `float64` representing the current game's leverage index
 //            `error` occurs on invalid data
-func LeverageIndex(baseState BaseState, score Score, halfInning HalfInning, outs int) (float64, error) {
+func LeverageIndex(baseState BaseState, score Score, halfInning HalfInning, outs int) (float32, error) {
 	// validate
 	if halfInning.Inning < 1 {
-		return 0.0, fmt.Errorf("inning should be a positive integer")
+		return 0.0, ErrInvalidInning
 	}
 	if (outs < 0) || (outs > 3) {
-		return 0.0, fmt.Errorf("outs should be a value of 0, 1, 2 or 3")
+		return 0.0, ErrInvalidOuts
 	}
 
 	// clean
@@ -118,14 +127,19 @@ func LeverageIndex(baseState BaseState, score Score, halfInning HalfInning, outs
 	}
 
 	// convert to simple lookup table
-	baseStateIndex := baseState.Int() * (outs + 1)
-	gameStateIndex := 0
-	if halfInning.Int() == 0 {
+	baseStateIndex := 8*outs + baseState.Int()
+	gameStateIndex := 9*halfInning.Int() + runDiff // most half innings have nine possible run differentials
+
+	if halfInning.Int() == 0 { // Top of the first the home team can only be losing or tied
 		gameStateIndex = runDiff + 4
 	}
-	if halfInning.Int() == 17 {
+	if halfInning.Int() == 1 { // Bottom of the first only increments five
+		gameStateIndex = runDiff + 9
+	}
+	if halfInning.Int() == 17 { // Bottom of the ninth the home team can only be losing or tied
 		gameStateIndex = runDiff + 153
 	}
-	gameStateIndex = 5 + halfInning.Int()*(runDiff+5)
+
+	log.Printf("inn: %d, bs: %d, gs: %d", halfInning.Inning, baseStateIndex, gameStateIndex)
 	return leverageIndices[baseStateIndex][gameStateIndex], nil
 }
