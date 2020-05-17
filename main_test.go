@@ -1,8 +1,6 @@
 package sabermetrics
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestLeverageIndex(t *testing.T) {
 	tests := map[string]struct {
@@ -110,6 +108,54 @@ func TestLeverageIndex(t *testing.T) {
 			outs:        2,
 			expectedRes: 0.0,
 			expectedErr: ErrInvalidInning,
+		},
+		"invalid outs": {
+			halfInning: HalfInning{
+				Inning: 1,
+			},
+			outs:        7,
+			expectedRes: 0.0,
+			expectedErr: ErrInvalidOuts,
+		},
+		"advance inning if outs == 3": {
+			halfInning: HalfInning{
+				Inning: 1,
+			},
+			outs:        3,
+			expectedRes: 0.9, // Top of the second. No runnes. No score. No outs.
+			expectedErr: nil,
+		},
+		"if inning > 9, set to 9": {
+			halfInning: HalfInning{
+				Inning: 19,
+			},
+			outs:        0,
+			expectedRes: 2.3, // Bottom of the ninth. No runners. No score. No outs.
+			expectedErr: nil,
+		},
+		"if run differential is greater than 4, use 4": {
+			halfInning: HalfInning{
+				Inning: 1,
+			},
+			score: Score{
+				Away: 0,
+				Home: 15,
+			},
+			outs:        0,
+			expectedRes: 0.4, // Bottom of the first. No Runners. RunDiff = 4. No outs.
+			expectedErr: nil,
+		},
+		"if run differential is less than -4, use -4": {
+			halfInning: HalfInning{
+				Inning: 1,
+			},
+			score: Score{
+				Away: 11,
+				Home: 4,
+			},
+			outs:        0,
+			expectedRes: 0.7, // Bottom of the first. No Runners. RunDiff = -4. No outs.
+			expectedErr: nil,
 		},
 	}
 

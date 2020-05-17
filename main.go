@@ -1,15 +1,12 @@
 package sabermetrics
 
-import (
-	"fmt"
-	"log"
-)
+import "errors"
 
 // ErrInvalidInning is returned if a non-positive HalfInning.Inning is received
-var ErrInvalidInning = fmt.Errorf("inning should be a positive integer")
+var ErrInvalidInning = errors.New("inning should be a positive integer")
 
 // ErrInvalidOuts is returned if outs is invalid
-var ErrInvalidOuts = fmt.Errorf("outs should be a value of 0, 1, 2 or 3")
+var ErrInvalidOuts = errors.New("outs should be a value of 0, 1, 2 or 3")
 
 // leverageIndices is pulled from `The Book`: http://www.insidethebook.com/li.shtml
 // These values are most likely older than 2008 and could use updating
@@ -140,6 +137,5 @@ func LeverageIndex(baseState BaseState, score Score, halfInning HalfInning, outs
 		gameStateIndex = runDiff + 153
 	}
 
-	log.Printf("inn: %d, bs: %d, gs: %d", halfInning.Inning, baseStateIndex, gameStateIndex)
 	return leverageIndices[baseStateIndex][gameStateIndex], nil
 }
