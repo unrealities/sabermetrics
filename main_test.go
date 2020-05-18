@@ -26,7 +26,7 @@ func TestLeverageIndex(t *testing.T) {
 				TopOfInning: true,
 			},
 			outs:        2,
-			expectedRes: 1.4,
+			expectedRes: LeverageIndices[23][0],
 			expectedErr: nil,
 		},
 		"successful bottom of the first": {
@@ -44,7 +44,7 @@ func TestLeverageIndex(t *testing.T) {
 				TopOfInning: false,
 			},
 			outs:        2,
-			expectedRes: 0.4,
+			expectedRes: LeverageIndices[16][9],
 			expectedErr: nil,
 		},
 		"successful bottom of the fifth": {
@@ -62,7 +62,7 @@ func TestLeverageIndex(t *testing.T) {
 				TopOfInning: false,
 			},
 			outs:        0,
-			expectedRes: 1.2,
+			expectedRes: LeverageIndices[5][82],
 			expectedErr: nil,
 		},
 		"successful top of the seventh": {
@@ -80,7 +80,7 @@ func TestLeverageIndex(t *testing.T) {
 				TopOfInning: true,
 			},
 			outs:        1,
-			expectedRes: 1.8,
+			expectedRes: LeverageIndices[9][110],
 			expectedErr: nil,
 		},
 		"successful bottom of the ninth": {
@@ -98,7 +98,7 @@ func TestLeverageIndex(t *testing.T) {
 				TopOfInning: false,
 			},
 			outs:        1,
-			expectedRes: 2.9,
+			expectedRes: LeverageIndices[11][151],
 			expectedErr: nil,
 		},
 		"invalid inning": {
@@ -122,7 +122,7 @@ func TestLeverageIndex(t *testing.T) {
 				Inning: 1,
 			},
 			outs:        3,
-			expectedRes: 0.9, // Top of the second. No runnes. No score. No outs.
+			expectedRes: LeverageIndices[0][18], // Top of the second. No runnes. No score. No outs.
 			expectedErr: nil,
 		},
 		"if inning > 9, set to 9": {
@@ -130,7 +130,7 @@ func TestLeverageIndex(t *testing.T) {
 				Inning: 19,
 			},
 			outs:        0,
-			expectedRes: 2.3, // Bottom of the ninth. No runners. No score. No outs.
+			expectedRes: LeverageIndices[0][153], // Bottom of the ninth. No runners. No score. No outs.
 			expectedErr: nil,
 		},
 		"if run differential is greater than 4, use 4": {
@@ -142,7 +142,7 @@ func TestLeverageIndex(t *testing.T) {
 				Home: 15,
 			},
 			outs:        0,
-			expectedRes: 0.4, // Bottom of the first. No Runners. RunDiff = 4. No outs.
+			expectedRes: LeverageIndices[0][13], // Bottom of the first. No Runners. RunDiff = 4. No outs.
 			expectedErr: nil,
 		},
 		"if run differential is less than -4, use -4": {
@@ -154,7 +154,7 @@ func TestLeverageIndex(t *testing.T) {
 				Home: 4,
 			},
 			outs:        0,
-			expectedRes: 0.7, // Bottom of the first. No Runners. RunDiff = -4. No outs.
+			expectedRes: LeverageIndices[0][5], // Bottom of the first. No Runners. RunDiff = -4. No outs.
 			expectedErr: nil,
 		},
 	}
