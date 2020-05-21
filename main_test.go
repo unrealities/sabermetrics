@@ -117,9 +117,22 @@ func TestLeverageIndex(t *testing.T) {
 			expectedRes: 0.0,
 			expectedErr: ErrInvalidOuts,
 		},
-		"invalid end of the game": {
+		"invalid: end of the game (bottom of ninth)": {
 			halfInning: HalfInning{
 				Inning: 9,
+			},
+			score: Score{
+				Away: 0,
+				Home: 1,
+			},
+			outs:        3,
+			expectedRes: 0.0,
+			expectedErr: ErrGameOver,
+		},
+		"invalid: end of the game (top of ninth)": {
+			halfInning: HalfInning{
+				Inning:      9,
+				TopOfInning: true,
 			},
 			score: Score{
 				Away: 0,
